@@ -13,7 +13,7 @@ def format_flights(flights: list[Flight]) -> str:
     for f in flights:
         lines.append(
             f"- {f.airline} {f.flight_number}, departs {f.departure}, "
-            f"{f.duration_hours}h, {f.price_usd} USD"
+            f"{f.duration_hours}h, {f.price} {f.currency}"
         )
     return "\n".join(lines)
 
@@ -21,7 +21,7 @@ def format_flights(flights: list[Flight]) -> str:
 def flight_offers(flights: list[Flight]) -> list[dict]:
     """The flights as data for other agents: name, price and currency of each one."""
     return [
-        {"name": f"{f.airline} {f.flight_number}", "price": f.price_usd, "currency": "USD"}
+        {"name": f"{f.airline} {f.flight_number}", "price": f.price, "currency": f.currency}
         for f in flights
     ]
 

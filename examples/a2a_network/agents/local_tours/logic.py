@@ -89,10 +89,10 @@ def parse_city(request: str) -> str:
     """Read the city from "in <city>" or "to <city>", else take the first known city mentioned."""
     lowered = request.lower()
     for word in ("in", "to"):
-        for city in CITY_TOURS:
+        for city in CITY_CURRENCIES:
             if f"{word} {city.lower()}" in lowered:
                 return city
-    for city in CITY_TOURS:
+    for city in CITY_CURRENCIES:
         if city.lower() in lowered:
             return city
     return DEFAULT_CITY
