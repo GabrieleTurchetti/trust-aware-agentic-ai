@@ -1,0 +1,1 @@
+# Trust-Aware Agentic AI: Integrating A2A with Self-Sovereign Identity and Web of Trust
