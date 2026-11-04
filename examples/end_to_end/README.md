@@ -8,12 +8,18 @@ Alice, a consultant based in Rome, has a client meeting in Milan on Thursday 12 
 
 The Assistant knows no travel provider in advance. It discovers a travel booking agent (Booking). Booking in turn discovers an airline agent (ITA Airways) and a hotel agent (Grand Hotel) and delegates to both in parallel.
 
-```
-Alice
-  └── Assistant agent            A2A client
-        └── Booking agent         A2A server for the Assistant, A2A client for the agents below
-              ├── ITA Airways agent    flight
-              └── Grand Hotel agent    hotel
+```mermaid
+flowchart TB
+    U["Alice"]
+    C["Assistant agent<br/>A2A client"]
+    B["Booking agent<br/>A2A server for the Assistant, A2A client for the agents below"]
+    I["ITA Airways agent<br/>flight"]
+    H["Grand Hotel agent<br/>hotel"]
+
+    U --- C
+    C --- B
+    B --- I
+    B --- H
 ```
 
 ## 2. Cast
@@ -129,7 +135,7 @@ sequenceDiagram
     B-->>H: Tx hash + completion credential
 ```
 
-## 4. Phase 0: setup (before the task)
+## 4. Phase 0: setup
 
 1. All agents and issuers register their DIDs on-chain. Each agent's DID document lists its keys and a service endpoint pointing to its Agent Card.
 2. Issuers issue skill credentials to the agents and publish their revocation status lists on-chain. The Civil Aviation Authority has revoked Airline B's credential, so its bit in the status list is set to 1.
@@ -325,28 +331,69 @@ Every request and response is signed by its sender, and every receipt by its rec
 
 **The resulting nested Merkle trees:**
 
+```mermaid
+flowchart LR
+    subgraph ASSISTANT["Assistant's tree"]
+        ROOT["ROOT_T1<br/>co-signed, anchored on-chain"]
+        A1["A1 · request T1<br/>Assistant → Booking"]
+        A2["A2 · receipt of A1<br/>signed by Booking"]
+        A3["A3 · response T1<br/>Booking → Assistant, €360"]
+        A4["A4 · receipt of A3<br/>signed by Assistant"]
+        A5["A5 · R_booking<br/>subtree root, signed by Booking"]
+    end
+
+    subgraph BOOKING["Booking's tree"]
+        B1["B1 · request T2<br/>Booking → ITA"]
+        B2["B2 · receipt of B1<br/>signed by ITA"]
+        B3["B3 · request T3<br/>Booking → Grand Hotel"]
+        B4["B4 · receipt of B3<br/>signed by Grand Hotel"]
+        B5["B5 · response T2<br/>ITA → Booking<br/>PNR ABC123, €240"]
+        B6["B6 · receipt of B5<br/>signed by Booking"]
+        B7["B7 · R_ita<br/>subtree root, signed by ITA"]
+        B8["B8 · response T3<br/>Grand Hotel → Booking<br/>GH-7781, €120"]
+        B9["B9 · receipt of B8<br/>signed by Booking"]
+        B10["B10 · R_hotel<br/>subtree root, signed by Grand Hotel"]
+    end
+
+    subgraph ITA["ITA's tree"]
+        I1["I1 · availability query"]
+        I2["I2 · fare selected, €240"]
+        I3["I3 · PNR ABC123 created"]
+    end
+
+    subgraph HOTEL["Grand Hotel's tree"]
+        H1["H1 · availability query"]
+        H2["H2 · reservation GH-7781<br/>created, €120"]
+    end
+
+    ROOT --- A1
+    ROOT --- A2
+    ROOT --- A3
+    ROOT --- A4
+    ROOT --- A5
+    A5 --- B1
+    A5 --- B2
+    A5 --- B3
+    A5 --- B4
+    A5 --- B5
+    A5 --- B6
+    A5 --- B7
+    A5 --- B8
+    A5 --- B9
+    A5 --- B10
+    B7 --- I1
+    B7 --- I2
+    B7 --- I3
+    B10 --- H1
+    B10 --- H2
+
+    classDef anchored fill:#EEEDFE,stroke:#534AB7,color:#26215C
+    classDef subroot fill:#E1F5EE,stroke:#0F6E56,color:#04342C
+    class ROOT anchored
+    class A5,B7,B10 subroot
 ```
-ROOT_T1                  Assistant's tree: co-signed by all four agents, anchored on-chain
-├── A1  request T1       Assistant → Booking            signed by Assistant
-├── A2  receipt          of A1                          signed by Booking
-├── A3  response T1      Booking → Assistant (€360)     signed by Booking
-├── A4  receipt          of A3                          signed by Assistant
-└── A5  R_booking        subtree root                   signed by Booking
-    ├── B1  request T2       Booking → ITA
-    ├── B2  receipt          of B1, by ITA
-    ├── B3  request T3       Booking → Grand Hotel
-    ├── B4  receipt          of B3, by Grand Hotel
-    ├── B5  response T2      ITA → Booking (PNR ABC123, €240)
-    ├── B6  receipt          of B5, by Booking
-    ├── B7  R_ita            subtree root, signed by ITA
-    │   ├── I1  availability query
-    │   ├── I2  fare selected (€240)
-    │   └── I3  PNR created
-    ├── B8  response T3      Grand Hotel → Booking (GH-7781, €120)
-    ├── B9  receipt          of B8, by Booking
-    └── B10 R_hotel          subtree root, signed by Grand Hotel
-        ├── H1  availability query
-        └── H2  reservation created (€120)
+
+The highlighted nodes `A5`, `B7` and `B10` are subtree roots: each one is a leaf of its parent's tree and, at the same time, the root of the tree it links to. Hashes are computed bottom-up: first the ITA and Grand Hotel trees, then Booking's tree, then the Assistant's tree. Only `ROOT_T1` is written on-chain.
 ```
 
 **Who stores what:**
@@ -437,7 +484,7 @@ Each caller issues a task-completion credential to its callee:
 
 **How it is used later.** Three weeks later, Bob's assistant considers Grand Hotel for another trip. Alongside its skill credential, Grand Hotel's VP now contains the completion credential from Booking. Bob's assistant verifies the evidence, i.e. that the subtree root is included in an anchored root, without seeing any task content. It then weights the credential according to how much it trusts Booking as an issuer. Completion credentials from issuers with no trust path are ignored, which limits Sybil attacks.
 
-## 13. Epilogue: a dispute
+## 13. Dispute
 
 At check-in on 12 November, Grand Hotel's front desk claims that the booked rate was €220, not €120. On Alice's behalf, the Assistant asks Booking for evidence. Booking presents to an arbiter:
 
