@@ -394,7 +394,7 @@ flowchart LR
 ```
 
 The highlighted nodes `A5`, `B7` and `B10` are subtree roots: each one is a leaf of its parent's tree and, at the same time, the root of the tree it links to. Hashes are computed bottom-up: first the ITA and Grand Hotel trees, then Booking's tree, then the Assistant's tree. Only `ROOT_T1` is written on-chain.
-```
+
 
 **Who stores what:**
 

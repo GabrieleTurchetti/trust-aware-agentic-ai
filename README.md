@@ -169,15 +169,24 @@ sequenceDiagram
 
 **Nested trees that mirror the delegation chain**
 
-```
-Task root  (co-signed, anchored on-chain)
-├── request   Coordinator → A      (signed by Coordinator)
-├── response  A → Coordinator      (signed by A)
-├── receipt   Coordinator → A      (signed by Coordinator)
-└── subtree root of A → B          (signed by A and B)
-    ├── request   A → B            (signed by A)
-    ├── response  B → A            (signed by B)
-    └── subtree root of B → C ...
+```mermaid
+flowchart TB
+    R["Task root<br/>(co-signed, anchored on-chain)"]
+    R1["request Coordinator → A<br/>(signed by Coordinator)"]
+    R2["response A → Coordinator<br/>(signed by A)"]
+    R3["receipt Coordinator → A<br/>(signed by Coordinator)"]
+    S1["subtree root of A → B<br/>(signed by A and B)"]
+    S1a["request A → B<br/>(signed by A)"]
+    S1b["response B → A<br/>(signed by B)"]
+    S2["subtree root of B → C"]
+
+    R --- R1
+    R --- R2
+    R --- R3
+    R --- S1
+    S1 --- S1a
+    S1 --- S1b
+    S1 --- S2
 ```
 
 **Properties**
