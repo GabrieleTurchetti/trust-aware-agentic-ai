@@ -1,0 +1,49 @@
+{
+  "name": "trust-aware-agentic-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Trust layer for A2A based on DIDs, Verifiable Credentials and Web of Trust: did:ethr identities, credentials and on-chain revocation with Veramo",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "exports": {
+    ".": "./src/trust_aware_agentic_ai/index.ts"
+  },
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "npm run -s compile && node --import tsx --test --test-concurrency=1 \"tests/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@veramo/core": "7.0.2",
+    "@veramo/core-types": "7.0.2",
+    "@veramo/credential-jwt": "7.0.2",
+    "@veramo/credential-w3c": "7.0.2",
+    "@veramo/data-store": "7.0.2",
+    "@veramo/did-manager": "7.0.2",
+    "@veramo/did-provider-ethr": "7.0.2",
+    "@veramo/did-resolver": "7.0.2",
+    "@veramo/key-manager": "7.0.2",
+    "@veramo/kms-local": "7.0.2",
+    "@veramo/utils": "7.0.2",
+    "better-sqlite3": "12.11.1",
+    "did-resolver": "4.1.0",
+    "ethers": "6.17.0",
+    "ethr-did-registry": "2.0.0",
+    "ethr-did-resolver": "11.0.4",
+    "typeorm": "0.3.31"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "26.6.6",
+    "hardhat": "3.22.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.28.2": true
+  }
+}

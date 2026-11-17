@@ -3,27 +3,26 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "trust-aware-agentic-ai"
+name = "a2a-network-example"
 version = "0.1.0"
-description = "Trust layer for A2A based on DIDs, Verifiable Credentials and Web of Trust"
+description = "Early Python prototype of an A2A agent network for travel planning, without the trust layer"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 dependencies = [
-    "a2a-sdk>=1.2.2,<2",
-]
-
-[project.optional-dependencies]
-examples = [
     "a2a-sdk[http-server]>=1.2.2,<2",
     "uvicorn>=0.54.0",
 ]
+
+[project.optional-dependencies]
 dev = [
-    "trust-aware-agentic-ai[examples]",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.17.1",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agents", "assistant", "common"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

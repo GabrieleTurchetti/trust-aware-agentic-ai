@@ -1,0 +1,28 @@
+{
+  "name": "veramo-credentials-example",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Issuing, presenting, verifying and revoking Verifiable Credentials with the trust-aware-agentic-ai library, on a local Hardhat chain",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "compile": "npm run -s --prefix ../.. compile",
+    "demo": "npm run -s compile && tsx src/scenario.ts",
+    "test": "npm run -s compile && node --import tsx --test \"tests/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "trust-aware-agentic-ai": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

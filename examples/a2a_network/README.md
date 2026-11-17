@@ -24,7 +24,16 @@ flowchart LR
 
 ## Running the example
 
-With the project installed with the `examples` extra (`pip install -e ".[examples]"` from the repository root), start each agent in its own terminal, from `examples/a2a_network`:
+This example is a self-contained Python project, with its own `pyproject.toml`. It needs Python 3.12 or later. Install it in a virtual environment, from its folder:
+
+```bash
+cd examples/a2a_network
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .          # or pip install -e ".[dev]" to also get pytest and ruff
+```
+
+Then start each agent in its own terminal, from `examples/a2a_network`, with the virtual environment activated:
 
 ```bash
 python -m agents.flight_booking

@@ -1,6 +1,6 @@
 # End-to-End Example: Booking a Business Trip
 
-## 1. Scenario
+## Scenario
 
 Alice, a consultant based in Rome, has a client meeting in Milan on Thursday 12 November 2026. On Monday 2 November she asks her personal assistant agent:
 
@@ -22,7 +22,7 @@ flowchart TB
     B --- H
 ```
 
-## 2. Cast
+## Cast
 
 ### Agents
 
@@ -83,7 +83,7 @@ All verifiers use the same illustrative parameters:
 
 Each delegation is a credential signed by the delegator. It names the delegatee's DID and references the hash of its parent. Every link narrows the one before it.
 
-## 3. Sequence overview
+## Sequence overview
 
 ```mermaid
 sequenceDiagram
@@ -135,7 +135,7 @@ sequenceDiagram
     B-->>H: Tx hash + completion credential
 ```
 
-## 4. Phase 0: setup
+## Phase 0: setup
 
 1. All agents and issuers register their DIDs on-chain. Each agent's DID document lists its keys and a service endpoint pointing to its Agent Card.
 2. Issuers issue skill credentials to the agents and publish their revocation status lists on-chain. The Civil Aviation Authority has revoked Airline B's credential, so its bit in the status list is set to 1.
@@ -220,7 +220,7 @@ sequenceDiagram
 }
 ```
 
-## 5. Phase 1: the Assistant finds and verifies Booking
+## Phase 1: the Assistant finds and verifies Booking
 
 1. **Discovery.** From Alice's goal, the Assistant derives the skill `travel-booking` and queries its local index. Booking matches.
 2. **Re-verification on-chain.** The Assistant resolves `did:example:booking`, then fetches the Agent Card from the endpoint listed in the DID document. It verifies the card's JWS: the card is JCS-canonicalized and the key is taken from the DID document. It also checks the two-way binding between card and DID: the card names the DID in its extension params, and the DID document points to the card URL.
@@ -235,7 +235,7 @@ sequenceDiagram
    - that the skill is `travel-booking`.
 6. **Trust.** The issuer is the Travel Agency Licensing Body, one of the Assistant's anchors. Trust is 1.00, so Booking is accepted.
 
-## 6. Phase 2: the Assistant delegates to Booking
+## Phase 2: the Assistant delegates to Booking
 
 1. The Assistant creates D1. It sends task request T1, signed and including `m1`, together with the chain [D0, D1].
 2. Booking verifies the chain:
@@ -248,7 +248,7 @@ sequenceDiagram
    The signature over `m1` proves that the request is fresh and comes from the delegatee named in D0.
 3. Booking returns a signed receipt. Logged events: A1 (request) and A2 (receipt).
 
-## 7. Phase 3: Booking finds and verifies its sub-agents (in parallel)
+## Phase 3: Booking finds and verifies its sub-agents (in parallel)
 
 Booking now acts as an A2A client for two new tasks, T2 (flight) and T3 (hotel), while T1 is still in progress. For each branch it repeats Phase 1, with these results:
 
@@ -264,7 +264,7 @@ Two things to note:
 - **Validity is not trust.** Hotel B's credential is cryptographically perfect, and it is still rejected.
 - **The holder supplies the trust path.** Booking does not know the Regional Hotel Registry. Grand Hotel includes endorsement E1 in its VP, so Booking can build the path from one of its own anchors, much like a TLS server sending its intermediate certificates.
 
-## 8. Phase 4: sub-delegation with mutual verification
+## Phase 4: sub-delegation with mutual verification
 
 1. Booking creates D2a (to ITA, €300) and D2b (to Grand Hotel, €150). Both are subsets of D1.
 2. Each callee issued a nonce during the challenge: `m2` from ITA, `m3` from Grand Hotel. Booking signs each task request over that nonce and sends it with its own VP and the full delegation chain:
@@ -303,7 +303,7 @@ Two things to note:
 }
 ```
 
-## 9. Phase 5: execution and signed log
+## Phase 5: execution and signed log
 
 ITA and Grand Hotel do the work and log their internal steps:
 
@@ -407,7 +407,7 @@ The highlighted nodes `A5`, `B7` and `B10` are subtree roots: each one is a leaf
 
 No agent sees the contents of another agent's subtree. The Assistant only sees `R_booking`, and Booking only sees `R_ita` and `R_hotel`.
 
-## 10. Phase 6: co-signing the task root
+## Phase 6: co-signing the task root
 
 1. The Assistant computes the task root `ROOT_T1` over A1–A5. It sends `ROOT_T1` to Booking together with the proof `π_booking`, i.e. the sibling hashes linking A5 to `ROOT_T1`.
 2. Booking checks that `R_booking` is included unchanged. Then, in parallel, it forwards `ROOT_T1` to its children with extended proofs:
@@ -420,7 +420,7 @@ No agent sees the contents of another agent's subtree. The Assistant only sees `
 
 **Side effect:** the co-signing round has already delivered to every participant its full inclusion proof, so no separate proof distribution is needed.
 
-## 11. Phase 7: anchoring
+## Phase 7: anchoring
 
 The Assistant writes one transaction to the registry contract, which emits:
 
@@ -446,7 +446,7 @@ Each participant now holds, for its own events:
 
 In a future dispute, nobody depends on anyone else to produce evidence.
 
-## 12. Phase 8: feedback into the Web of Trust
+## Phase 8: feedback into the Web of Trust
 
 Each caller issues a task-completion credential to its callee:
 
@@ -484,7 +484,7 @@ Each caller issues a task-completion credential to its callee:
 
 **How it is used later.** Three weeks later, Bob's assistant considers Grand Hotel for another trip. Alongside its skill credential, Grand Hotel's VP now contains the completion credential from Booking. Bob's assistant verifies the evidence, i.e. that the subtree root is included in an anchored root, without seeing any task content. It then weights the credential according to how much it trusts Booking as an issuer. Completion credentials from issuers with no trust path are ignored, which limits Sybil attacks.
 
-## 13. Dispute
+## Dispute
 
 At check-in on 12 November, Grand Hotel's front desk claims that the booked rate was €220, not €120. On Alice's behalf, the Assistant asks Booking for evidence. Booking presents to an arbiter:
 

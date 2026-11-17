@@ -9,13 +9,33 @@
 - Verification goes both ways. The caller verifies the callee's capabilities, and the callee verifies the caller's delegation chain back to the user.
 - Every exchange is signed and acknowledged. Logs stay off-chain with each agent. Only a co-signed Merkle root per task is anchored on-chain.
 
+## Repository
+
+The main library is written in TypeScript. It is the npm package `trust-aware-agentic-ai` defined by the root [`package.json`](package.json), built on Veramo, with `did:ethr` identities and an on-chain revocation list.
+
+| Path | Content |
+|---|---|
+| [`src/trust_aware_agentic_ai/`](src/trust_aware_agentic_ai/) | The library: DIDs, Verifiable Credentials and Presentations, revocation, verification |
+| [`contracts/`](contracts/) | `StatusList.sol`, the on-chain revocation list used by the library |
+| [`tests/`](tests/) | Unit tests of the library |
+| [`examples/veramo_credentials/`](examples/veramo_credentials/) | The credential checks of the end-to-end scenario on a local chain, built on the library |
+| [`examples/end_to_end/`](examples/end_to_end/) | The end-to-end scenario, step by step |
+| [`examples/a2a_network/`](examples/a2a_network/) | An early Python prototype of the agent network: an assistant discovers travel agents through their Agent Cards and delegates tasks to them, without the trust layer. It is a self-contained Python project. |
+
+To install the library and run its unit tests, with Node.js 26 (see [`.nvmrc`](.nvmrc)):
+
+```bash
+npm install
+npm test
+```
+
 ---
 
-## 1. Goal
+## Goal
 
 In an open ecosystem, agents from different organizations must discover each other, delegate tasks and collaborate without knowing each other in advance. A2A standardizes how agents communicate, but an Agent Card is a self-declaration: it does not prove that the agent's claims are true. This architecture adds a trust layer based on SSI (DIDs and VCs) and a decentralized trust model (Web of Trust), with no shared central trust authority. It also adds tamper-evident auditing of multi-agent tasks.
 
-## 2. Building blocks
+## Building blocks
 
 | Component | Role in the architecture |
 |---|---|
@@ -27,7 +47,7 @@ In an open ecosystem, agents from different organizations must discover each oth
 | **Web of Trust (WoT)** | Per-verifier model that decides whether to trust an issuer it does not directly know, using endorsements and trust propagation. |
 | **Merkle anchoring** | Off-chain signed logs, with only the Merkle root written on-chain per task. |
 
-## 3. Roles
+## Roles
 
 | Role | Who | Responsibilities |
 |---|---|---|
@@ -40,7 +60,7 @@ In an open ecosystem, agents from different organizations must discover each oth
 
 Every agent plays several SSI roles: holder of its own credentials, verifier of the agents it calls, and potentially issuer of task-completion attestations.
 
-## 4. What lives where
+## What lives where
 
 | Data | Location | Rationale |
 |---|---|---|
@@ -56,7 +76,7 @@ Every agent plays several SSI roles: holder of its own credentials, verifier of 
 
 Agent DIDs are public by design. Human holders should avoid public DIDs because they make users correlatable across verifiers. Agents, like issuers, *want* to be discoverable, so this privacy concern does not apply to them.
 
-## 5. End-to-end flow
+## End-to-end flow
 
 ```mermaid
 sequenceDiagram
@@ -150,7 +170,7 @@ sequenceDiagram
 - After anchoring, the coordinator may issue a task-completion credential to the agent, such as "agent X completed task Y correctly". It references the anchoring transaction.
 - The agent can present this credential in future interactions, and verifiers can use it as evidence in trust evaluation.
 
-## 6. Audit log structure
+## Audit log structure
 
 **Leaf (one per logged event)**
 
@@ -197,7 +217,7 @@ flowchart TB
 - **Accountability for permissions:** the `authorization` field records which delegation credential authorized each action.
 - **Batching:** per-task roots can be aggregated into a periodic batch root, so only one transaction is needed per batch. Each task keeps an inclusion proof to the batch root.
 
-## 7. Key design decisions
+## Key design decisions
 
 - **The blockchain is a registry, not a trust authority.** It provides tamper-evident resolution of identifiers, keys and status without a single operator. Whether to trust an issuer is decided by each verifier through the Web of Trust.
 - **Message-level signatures are required.** A signed Agent Card proves the card's integrity and who signed it, but it does not cover later task requests.
@@ -207,7 +227,7 @@ flowchart TB
 - **`did:web` vs a ledger-based DID method.** `did:web` needs no blockchain but inherits trust from DNS and TLS certificate authorities, which are the central points this design aims to avoid.
 - **Key rotation.** The chain preserves the full DID document history, so logs signed with old keys remain verifiable.
 
-## 8. Threats and mitigations
+## Threats and mitigations
 
 | Threat | Mitigation |
 |---|---|
