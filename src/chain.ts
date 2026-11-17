@@ -11,7 +11,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** Root of the repository: the folder with package.json, hardhat.config.ts and the compiled artifacts. */
-const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 export const HARDHAT_CHAIN_ID = 31337
 /** Network name used in DIDs: `did:ethr:development:0x...`. */

@@ -15,7 +15,7 @@ The main library is written in TypeScript. It is the npm package `trust-aware-ag
 
 | Path | Content |
 |---|---|
-| [`src/trust_aware_agentic_ai/`](src/trust_aware_agentic_ai/) | The library: DIDs, Verifiable Credentials and Presentations, revocation, verification |
+| [`src/`](src/) | The library: DIDs, Verifiable Credentials and Presentations, revocation, verification |
 | [`contracts/`](contracts/) | `StatusList.sol`, the on-chain revocation list used by the library |
 | [`tests/`](tests/) | Unit tests of the library |
 | [`examples/veramo_credentials/`](examples/veramo_credentials/) | The credential checks of the end-to-end scenario on a local chain, built on the library |

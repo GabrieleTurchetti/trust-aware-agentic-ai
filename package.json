@@ -9,7 +9,7 @@
     "node": ">=22.12.0"
   },
   "exports": {
-    ".": "./src/trust_aware_agentic_ai/index.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "compile": "hardhat compile",

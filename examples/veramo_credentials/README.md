@@ -1,6 +1,6 @@
 # Veramo credentials example
 
-Issuing, presenting, verifying and revoking Verifiable Credentials with Veramo, using DIDs anchored on a local Ethereum chain. This is the first runnable piece of the business trip scenario: it implements Phase 0 (setup) and the credential checks of Phase 3 (ITA Airways accepted, Airline B rejected), without A2A, agents or LLMs. All the reusable code comes from the `trust-aware-agentic-ai` library, whose source is in [`src/trust_aware_agentic_ai/`](../../src/trust_aware_agentic_ai/) at the repository root. This folder holds only the scenario, its tests and their outputs.
+Issuing, presenting, verifying and revoking Verifiable Credentials with Veramo, using DIDs anchored on a local Ethereum chain. This is the first runnable piece of the business trip scenario: it implements Phase 0 (setup) and the credential checks of Phase 3 (ITA Airways accepted, Airline B rejected), without A2A, agents or LLMs. All the reusable code comes from the `trust-aware-agentic-ai` library, whose source is in [`src/`](../../src/) at the repository root. This folder holds only the scenario, its tests and their outputs.
 
 ## Scenario
 
@@ -47,29 +47,29 @@ Every check is printed as a readable line and appended as one JSON line to `even
 
 ### Code layout
 
-The scenario and the tests import everything from `trust-aware-agentic-ai`. The library lives at the repository root: its source in [`src/trust_aware_agentic_ai/`](../../src/trust_aware_agentic_ai/), the status list contract in [`contracts/StatusList.sol`](../../contracts/StatusList.sol), the [`hardhat.config.ts`](../../hardhat.config.ts) that compiles it, and its unit tests in [`tests/`](../../tests/).
+The scenario and the tests import everything from `trust-aware-agentic-ai`. The library lives at the repository root: its source in [`src/`](../../src/), the status list contract in [`contracts/StatusList.sol`](../../contracts/StatusList.sol), the [`hardhat.config.ts`](../../hardhat.config.ts) that compiles it, and its unit tests in [`tests/`](../../tests/).
 
 ```
 repository root: the trust-aware-agentic-ai library
-  package.json                  the library package, entry point src/trust_aware_agentic_ai/index.ts
-  hardhat.config.ts             compiles the contract and runs the local chain
-  contracts/StatusList.sol      minimal on-chain status list (one bitstring per issuer)
-  src/trust_aware_agentic_ai/   the trust layer, future trust layer of the A2A agents
-    index.ts                    public entry point
-    actor.ts                    one Veramo agent per actor (SQLite, KMS, did:ethr provider and resolver, JWT credentials)
-    identity.ts                 did:ethr creation, service endpoints, resolution
-    credentials.ts              skill credential issuing, nonces, presentations
-    verification.ts             presentation, credential and service endpoint checks returning { ok, reason, durationMs }
-    status.ts                   status list: credentialStatus entries, revocation, status checker
-    chain.ts                    Hardhat node lifecycle, contract deployment, funding
-    events.ts                   JSONL event log and console summary
-  tests/                        unit tests of the library
+  package.json               the library package, entry point src/index.ts
+  hardhat.config.ts          compiles the contract and runs the local chain
+  contracts/StatusList.sol   minimal on-chain status list (one bitstring per issuer)
+  src/                       the trust layer, future trust layer of the A2A agents
+    index.ts                 public entry point
+    actor.ts                 one Veramo agent per actor (SQLite, KMS, did:ethr provider and resolver, JWT credentials)
+    identity.ts              did:ethr creation, service endpoints, resolution
+    credentials.ts           skill credential issuing, nonces, presentations
+    verification.ts          presentation, credential and service endpoint checks returning { ok, reason, durationMs }
+    status.ts                status list: credentialStatus entries, revocation, status checker
+    chain.ts                 Hardhat node lifecycle, contract deployment, funding
+    events.ts                JSONL event log and console summary
+  tests/                     unit tests of the library
 
 examples/veramo_credentials: this example
-  package.json                  depends on trust-aware-agentic-ai (file:../..)
-  src/scenario.ts               the scenario: a thin script on top of the library
-  tests/                        tests of the scenario, run with node:test and tsx
-  data/, events/                actor databases and event logs, written at run time
+  package.json               depends on trust-aware-agentic-ai (file:../..)
+  src/scenario.ts            the scenario: a thin script on top of the library
+  tests/                     tests of the scenario, run with node:test and tsx
+  data/, events/             actor databases and event logs, written at run time
 ```
 
 ### Setup
@@ -89,7 +89,7 @@ examples/veramo_credentials: this example
    }
    ```
 
-### Verification, before and after the revocation
+### Pipeline
 
 For each airline, Booking generates a random nonce. The airline creates a presentation with its credential, signed over the nonce (`nonce` claim) and addressed to Booking (`aud` claim). Booking verifies it with the same nonce, and once more with a different nonce to simulate a replay, which fails with `challenge mismatch`.
 
@@ -97,9 +97,9 @@ For each airline, Booking generates a random nonce. The airline creates a presen
 
 For each credential, right after Veramo's signature check, Booking resolves the issuer's DID document and takes the controller address from it. It then reads bit `statusListIndex` of that issuer's list in the referenced contract. The address written in the credential is never trusted: the bit that counts belongs to the DID that signed the credential. Before the revocation both bits are 0 and both airlines are accepted. After it, Airline B's bit is 1 and Airline B is rejected.
 
-### Verification steps and reasons
+### Verification
 
-`verifyPresentation` in [`src/trust_aware_agentic_ai/verification.ts`](../../src/trust_aware_agentic_ai/verification.ts) returns `{ ok, reason, durationMs, details }`. The steps, and the reason returned when one fails:
+`verifyPresentation` in [`src/verification.ts`](../../src/verification.ts) returns `{ ok, reason, durationMs, details }`. The steps, and the reason returned when one fails:
 
 | Step | Who checks | Reason on failure |
 |---|---|---|
@@ -139,11 +139,3 @@ Every check is one line of `events/<name>-<timestamp>-<runId>.jsonl`:
 - a service endpoint added to a DID document appears in the resolved document.
 
 The library has its own unit tests, module by module, in [`tests/`](../../tests/) at the repository root. They run with `npm test` there, on ports 8547 to 8550.
-
-## Deviations
-
-- **VC Data Model 1.1 instead of 2.0.** The end-to-end example writes credentials with the `https://www.w3.org/ns/credentials/v2` context and `validFrom`/`validUntil`. Veramo 7's JWT provider (`did-jwt-vc` 4) implements the 1.1 model and rejects other base contexts. So the context here is `https://www.w3.org/2018/credentials/v1` and the dates are `issuanceDate`/`expirationDate`. The credential content is otherwise the same.
-- **On-chain status list instead of Bitstring Status List.** The W3C Bitstring Status List publishes a compressed bitstring as a credential at a URL, referenced with `statusListCredential`. Here the bitstring lives in `StatusList.sol` and is referenced with `statusListContract` (CAIP-10 style `eip155:<chainId>:<address>`), with the entry type `EthereumStatusListEntry`. Veramo's own status policy is disabled, because with a `credentialStatus` present and no status plugin Veramo refuses to verify. The trust layer reads the bit explicitly, right after the signature check.
-- **did:ethr identifiers are public keys, not addresses.** Veramo creates `did:ethr:development:0x02<33-byte compressed key>` rather than `did:ethr:development:0x<20-byte address>`. Both forms are valid ERC-1056 identifiers, and the address is still listed in the resolved document.
-- **`ethr-did-resolver` 11 rather than the latest 14.** Veramo's did:ethr provider pins version 11 through `ethr-did`. Using the same version avoids two copies with incompatible `did-resolver` types.
-- **The deployer funds the actors.** did:ethr updates and revocations are transactions paid by the actor's own key, which lives in its KMS. Hardhat account #0, a public development account, sends ITA and the CAA 1 ETH on the local chain. No other keys appear in the code, and nothing leaves localhost.
