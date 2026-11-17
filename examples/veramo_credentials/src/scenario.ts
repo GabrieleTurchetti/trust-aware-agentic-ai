@@ -1,6 +1,5 @@
 /**
- * The business trip scenario, credential layer only: Phase 0 (setup) and the
- * credential checks of Phase 3 of `examples/end_to_end/README.md`, without A2A.
+ * The business trip scenario, credential layer only, without A2A.
  *
  * 1. Setup: a local Hardhat chain with the ERC-1056 registry and the StatusList
  *    contract, did:ethr identities for the CAA, ITA, Airline B and Booking,
@@ -67,7 +66,7 @@ function brief(credential: VerifiableCredential): VerifiableCredential {
 }
 
 async function run(log: EventLog): Promise<void> {
-  heading('Phase 0: setup')
+  heading('Setup')
   const setup = await setupLocalChain()
   const actors: Actor[] = []
   try {
@@ -143,7 +142,7 @@ async function run(log: EventLog): Promise<void> {
       return { nonce, presentation }
     }
 
-    heading('Phase 3: Booking verifies the airlines')
+    heading('Booking verifies the airlines')
     for (const airline of airlines) {
       const { nonce, presentation } = await challenge(airline)
       log.record({
@@ -176,7 +175,7 @@ async function run(log: EventLog): Promise<void> {
     }
     show('CAA status bits', bits)
 
-    heading('Phase 3 again: Booking verifies the airlines after the revocation')
+    heading('Booking verifies the airlines after the revocation')
     for (const airline of airlines) {
       const { nonce, presentation } = await challenge(airline)
       log.record({

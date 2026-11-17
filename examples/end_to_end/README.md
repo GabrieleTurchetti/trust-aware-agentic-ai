@@ -248,7 +248,7 @@ sequenceDiagram
    The signature over `m1` proves that the request is fresh and comes from the delegatee named in D0.
 3. Booking returns a signed receipt. Logged events: A1 (request) and A2 (receipt).
 
-## Phase 3: Booking finds and verifies its sub-agents (in parallel)
+## Phase 3: Booking finds and verifies its sub-agents
 
 Booking now acts as an A2A client for two new tasks, T2 (flight) and T3 (hotel), while T1 is still in progress. For each branch it repeats Phase 1, with these results:
 
