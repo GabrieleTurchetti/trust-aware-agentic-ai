@@ -121,7 +121,9 @@ async function run(log: EventLog): Promise<void> {
       await issue(ita!, itaId, 'ITA', 'Air Operator Certificate IT-001'),
       await issue(airlineB!, airlineBId, 'Airline B', 'Air Operator Certificate IT-002'),
     ]
-    show('Credential issued by the CAA to Airline B', brief(airlines[1]!.credential))
+    for (const airline of airlines) {
+      show(`Credential issued by the CAA to ${airline.name}`, brief(airline.credential))
+    }
 
     // Booking trusts the CAA for flight-booking and reads status bits from the chain.
     const policy: Omit<VerifyPresentationOptions, 'challenge'> = {

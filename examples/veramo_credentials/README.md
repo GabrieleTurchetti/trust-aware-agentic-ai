@@ -1,6 +1,6 @@
 # Veramo credentials example
 
-Issuing, presenting, verifying and revoking Verifiable Credentials with Veramo, using DIDs anchored on a local Ethereum chain. This is the first runnable piece of the business trip scenario: it implements Phase 0 (setup) and the credential checks of Phase 3 (ITA Airways accepted, Airline B rejected), without A2A, agents or LLMs. All the reusable code comes from the `trust-aware-agentic-ai` library, whose source is in [`src/`](../../src/) at the repository root. This folder holds only the scenario, its tests and their outputs.
+Issuing, presenting, verifying and revoking Verifiable Credentials with Veramo, using DIDs anchored on a local Ethereum chain. This is the first runnable piece of the business trip scenario: it implements setup and the credential checks of ITA Airways accepted, Airline B rejected, without A2A, agents or LLMs. All the reusable code comes from the `trust-aware-agentic-ai` library, whose source is in [`src/`](../../src/) at the repository root. This folder holds only the scenario, its tests and their outputs.
 
 ## Scenario
 
@@ -12,6 +12,42 @@ The scenario runs in four steps:
 2. **Verification.** Booking challenges both airlines. Both are accepted, and a replayed presentation is rejected.
 3. **Revocation.** The CAA revokes Airline B's credential with one transaction.
 4. **Verification again.** Booking challenges both airlines with new nonces. ITA is accepted. Airline B is rejected with the reason `revoked credential`.
+
+```mermaid
+sequenceDiagram
+    participant C as CAA
+    participant I as ITA
+    participant A as Airline B
+    participant B as Booking
+    participant L as Local chain
+
+    Note over C,L: Setup
+    Note over C,B: Every actor creates its did:ethr
+    I->>L: Publish the Agent Card endpoint in its DID document
+    C->>I: flight-booking credential (status index 1)
+    C->>A: flight-booking credential (status index 2)
+
+    Note over C,L: Verification
+    B->>I: Nonce
+    I-->>B: VP
+    B->>A: Nonce
+    A-->>B: VP
+    B->>L: Read the status bits
+    L-->>B: ITA 0, Airline B 0
+    Note over B: Both accepted, replay rejected
+
+    Note over C,L: Revocation
+    C->>L: Revoke Airline B (setStatus)
+
+    Note over C,L: Verification again
+    B->>I: New nonce
+    I-->>B: VP
+    B->>A: New nonce
+    A-->>B: VP
+    B->>L: Read the status bits
+    L-->>B: ITA 0, Airline B 1
+    Note over B: ITA accepted, Airline B rejected (revoked credential)
+```
 
 ## Actors
 
@@ -89,7 +125,7 @@ examples/veramo_credentials: this example
    }
    ```
 
-### Pipeline
+### Verification: Before and after revocation
 
 For each airline, Booking generates a random nonce. The airline creates a presentation with its credential, signed over the nonce (`nonce` claim) and addressed to Booking (`aud` claim). Booking verifies it with the same nonce, and once more with a different nonce to simulate a replay, which fails with `challenge mismatch`.
 
@@ -97,7 +133,7 @@ For each airline, Booking generates a random nonce. The airline creates a presen
 
 For each credential, right after Veramo's signature check, Booking resolves the issuer's DID document and takes the controller address from it. It then reads bit `statusListIndex` of that issuer's list in the referenced contract. The address written in the credential is never trusted: the bit that counts belongs to the DID that signed the credential. Before the revocation both bits are 0 and both airlines are accepted. After it, Airline B's bit is 1 and Airline B is rejected.
 
-### Verification
+### Verification: Steps
 
 `verifyPresentation` in [`src/verification.ts`](../../src/verification.ts) returns `{ ok, reason, durationMs, details }`. The steps, and the reason returned when one fails:
 
